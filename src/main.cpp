@@ -58,7 +58,7 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
-          pid_s.UpdateError(cte);
+
           double steerAngle = pid.TotalError();
 
           // DEBUG
