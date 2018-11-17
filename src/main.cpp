@@ -1,11 +1,15 @@
 #include <uWS/uWS.h>
 #include <iostream>
+#include <string>
 #include "json.hpp"
 #include "PID.h"
 #include <math.h>
 
 // for convenience
 using json = nlohmann::json;
+
+//Global variable
+bool run_twiddle = false;
 
 // For converting back and forth between radians and degrees.
 constexpr double pi() { return M_PI; }
@@ -28,24 +32,39 @@ std::string hasData(std::string s) {
   return "";
 }
 
-int main()
+int main(int argC, char** argV)
 {
   uWS::Hub h;
 
   PID pid;
-  // works at 30mph
-  double K_p = 0.29282; 
-  double K_i = 0.0058564;
-  double K_d = 6.84567;
 
-  pid.Init(K_p, K_i, K_d);
-  //pid.InitializeTwiddle();
+  double Kp_initial, Ki_initial, Kd_initial;
 
+  if (argC > 1) {
+    Kp_initial = atof(argV[1]);
+    Ki_initial = atof(argV[2]);
+    Kd_initial = atof(argV[3]);
+    if (argC > 4) {
+      std::string is_run_twiddle = argV[4];
+      if (is_run_twiddle.compare("twiddle") == 0) {
+        run_twiddle = true;
+      }
+    }
+  } else {
+    Kp_initial = -0.091;
+    Ki_initial = -0.0005;
+    Kd_initial = -1.693;
+  }
+  //Init PID with P, I and D constants
+  std::cout<<"Kp is: "<<Kp_initial<<" Ki is: "<<Ki_initial<<" Kd is: "<<Kd_initial<<std::endl;
+  pid.Init(Kp_initial, Ki_initial, Kd_initial, run_twiddle);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
+    static unsigned int timesteps = 0;
+    static double total_error = 0.0;
     if (length && length > 2 && data[0] == '4' && data[1] == '2')
     {
       auto s = hasData(std::string(data).substr(0, length));
@@ -58,22 +77,30 @@ int main()
           double speed = std::stod(j[1]["speed"].get<std::string>());
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value;
-          double throttle;
-          /*
-          * TODO: Calcuate steering value here, remember the steering value is
-          * [-1, 1].
-          * NOTE: Feel free to play around with the throttle and speed. Maybe use
-          * another PID controller to control the speed!
-          */
-          pid.Twiddle();
+          
+          //Update the error in system using cte.
           pid.UpdateError(cte);
-          steer_value = pid.CalculateOutput();
-          throttle = pid.CalculateThrottle(speed, angle);
-
-
+          //Derive the steering angle in order to minimize the error (or cte).
+          steer_value = pid.TotalError();
+          
+          // DEBUG
+          //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+          //std::cout << "Timestep: " << timesteps << std::endl;
+          if (run_twiddle) {
+            if (timesteps > 500) {
+              pid.Twiddle(total_error, pid.Kp);
+              pid.Restart(ws);
+              timesteps = 0;
+              total_error = 0.0;
+              return;
+            } else {
+              total_error += pow(cte, 2);
+            }
+            timesteps++;
+          }
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle;
+          msgJson["throttle"] = 0.4;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
@@ -101,9 +128,8 @@ int main()
     }
   });
 
-  h.onConnection([&h, &pid](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+  h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
     std::cout << "Connected!!!" << std::endl;
-    pid.SetServer(ws);
   });
 
   h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
