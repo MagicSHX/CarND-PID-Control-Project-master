@@ -33,11 +33,9 @@ int main()
 {
   uWS::Hub h;
 
-  //PID pid;
-  PID pid_s, pid_t;
+  PID pid = PID(.2 , .0001 , 3.0);
   // TODO: Initialize the pid variable.
-  pid_s.Init(0.134611, 0.000270736, 3.05349);
-  pid_t.Init(0.316731, 0.0000, 0.0226185);
+
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -61,9 +59,7 @@ int main()
           * another PID controller to control the speed!
           */
           pid_s.UpdateError(cte);
-          steer_value = - pid_s.Kp * pid_s.p_error 
-                        - pid_s.Kd * pid_s.d_error 
-                        - pid_s.Ki * pid_s.i_error;
+          double steerAngle = pid.TotalError();
 
           // update error and calculate throttle_value at each step
           pid_t.UpdateError(fabs(cte));     // |cte|
