@@ -51,9 +51,13 @@ int main(int argC, char** argV)
       }
     }
   } else {
-    Kp_initial = -0.091;
-    Ki_initial = -0.0005;
-    Kd_initial = -1.693;
+    //Kp_initial = -0.091;
+    //Ki_initial = -0.0005;
+    //Kd_initial = -1.693;
+	
+	Kp_initial = 1.5;
+    Ki_initial = 0.0;
+    Kd_initial = 2.5;
   }
   //Init PID with P, I and D constants
   std::cout<<"Kp is: "<<Kp_initial<<" Ki is: "<<Ki_initial<<" Kd is: "<<Kd_initial<<std::endl;
@@ -84,8 +88,8 @@ int main(int argC, char** argV)
           steer_value = pid.TotalError();
           
           // DEBUG
-          //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
-          //std::cout << "Timestep: " << timesteps << std::endl;
+          std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+          std::cout << "Timestep: " << timesteps << std::endl;
           if (run_twiddle) {
             if (timesteps > 500) {
               pid.Twiddle(total_error, pid.Kp);

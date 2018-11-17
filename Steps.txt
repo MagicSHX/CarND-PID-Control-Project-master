@@ -1,7 +1,7 @@
 cd ..
-rm -R CarND-Kidnapped-Vehicle-Project-master
-git clone https://github.com/MagicSHX/CarND-Kidnapped-Vehicle-Project-master.git
-cd CarND-Kidnapped-Vehicle-Project-master
+rm -R CarND-PID-Control-Project-master
+git clone https://github.com/MagicSHX/CarND-PID-Control-Project-master.git
+cd CarND-PID-Control-Project-master
 mkdir build && cd build
 cmake .. && make
-./particle_filter
+./pid
