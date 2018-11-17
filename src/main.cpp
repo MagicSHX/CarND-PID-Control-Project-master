@@ -1,10 +1,29 @@
+Skip to content
+Features
+Business
+Explore
+Marketplace
+Pricing
+
+Search
+
+Sign in or Sign up
+1 0 0 stathopoan/CarND-CarND-PID-Control
+ Code  Issues 0  Pull requests 0  Projects 0  Insights
+Join GitHub today
+GitHub is home to over 28 million developers working together to host and review code, manage projects, and build software together.
+
+CarND-CarND-PID-Control/src/main.cpp
+4b7a32d  on Jul 8, 2017
+@stathopoan stathopoan Source code
+     
+132 lines (118 sloc)  3.98 KB
 #include <uWS/uWS.h>
 #include <iostream>
 #include "json.hpp"
 #include "PID.h"
 #include <math.h>
 
-#include <limits>
 // for convenience
 using json = nlohmann::json;
 
@@ -33,8 +52,14 @@ int main()
 {
   uWS::Hub h;
 
-  PID pid = PID(.2 , .0001 , 3.0);
+  PID pid;
   // TODO: Initialize the pid variable.
+  double init_Kp = 0.1;
+  //double init_Ki = 0.01;
+  double init_Ki = 0.001;
+  //double init_Kd = 1.0;
+  double init_Kd = 5.0;
+  pid.Init(init_Kp, init_Ki, init_Kd);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -53,13 +78,22 @@ int main()
           double angle = std::stod(j[1]["steering_angle"].get<std::string>());
           double steer_value;
           /*
-          * TODO: Calcuate steering value here, remember the steering value is
+          * TODO: Calculate steering value here, remember the steering value is
           * [-1, 1].
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
+          // Update errors
+          pid.UpdateError(cte);
+          // Calculate steering angle
+          steer_value = -pid.Kp*pid.p_error - pid.Kd*pid.d_error - pid.Ki*pid.i_error;
+          // Limit angle to acepted range
+          if (steer_value>1){
+        	  steer_value = 1;
+          } else if (steer_value<-1){
+        	  steer_value = -1;
+          }
 
-          double steerAngle = pid.TotalError();
 
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
@@ -115,3 +149,16 @@ int main()
   }
   h.run();
 }
+© 2018 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Press h to open a hovercard with more details.
