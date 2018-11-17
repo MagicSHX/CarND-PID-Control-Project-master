@@ -61,12 +61,6 @@ int main()
           pid_s.UpdateError(cte);
           double steerAngle = pid.TotalError();
 
-          // update error and calculate throttle_value at each step
-          pid_t.UpdateError(fabs(cte));     // |cte|
-          //pid_t.UpdateError(pow(cte, 2));   // cte^2
-          throttle_value = 0.75 - pid_t.Kp * pid_t.p_error
-                        - pid_t.Kd * pid_t.d_error 
-                        - pid_t.Ki * pid_t.i_error;
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
 
