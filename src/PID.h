@@ -16,8 +16,7 @@ public:
   **/
   long counter;
   double errorSum;
-  double minError;
-  double maxError;
+
 
   /*
   * Coefficients
@@ -51,20 +50,6 @@ public:
   */
   double TotalError();
 
-  /*
-  *  Returns the average error.
-  */
-  double AverageError();
-
-  /*
-  * Returns the min error.
-  */
-  double MinError();
-
-  /*
-  * Returns the max error.
-  */
-  double MaxError();
 };
 
 #endif /* PID_H */
