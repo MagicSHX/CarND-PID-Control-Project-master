@@ -34,17 +34,10 @@ int main()
 
   PID pid;
   // TODO: Initialize the pid variable.
-  // Only proportional.
-  // pid.Init(1, 0.0, 0.0);
-
-  // Only integral.
+   pid.Init(0.5, 0.0, 0.0);
   // pid.Init(0.0, 1.0, 0.0);
-
-  // Only differential.
   // pid.Init(0.0, 0.0, 1.0);
-
-  // Final parameters.
-  pid.Init(0.15, 0.0, 2.5);
+  //pid.Init(0.15, 0.0, 2.5);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -70,8 +63,6 @@ int main()
           */
           pid.UpdateError(cte);
           steer_value -= pid.TotalError();
-
-
           // DEBUG
           std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
           //std::cout << "Average Error : " <<  pid.AverageError() << " [" << pid.MinError() << ", " << pid.MaxError() << "]"<< std::endl;
